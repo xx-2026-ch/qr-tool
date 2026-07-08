@@ -7,7 +7,7 @@
     <meta name="description" content="免费在线二维码生成器，支持网址、文本、WiFi、名片等多种格式。一键生成高清二维码，支持下载 PNG 图片。">
     <meta name="keywords" content="二维码生成器, QR Code, 免费, 在线, WiFi二维码, 名片二维码">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔳</text></svg>">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
         /* ===== CSS Variables ===== */
         :root {
@@ -461,6 +461,14 @@
 <script>
     (function() {
         'use strict';
+
+        // ===== Check QRCode library loaded =====
+        if (typeof QRCode === 'undefined') {
+            document.getElementById('generate-btn').textContent = '❌ 库加载失败，请刷新页面';
+            document.getElementById('generate-btn').disabled = true;
+            console.error('QRCode library failed to load from CDN');
+            return;
+        }
 
         // ===== DOM refs =====
         const typeBtns = document.querySelectorAll('.type-btn');
