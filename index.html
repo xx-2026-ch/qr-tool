@@ -6,6 +6,19 @@
     <title>免费在线二维码生成器 | QR Code Generator</title>
     <meta name="description" content="免费在线二维码生成器，支持网址、文本、WiFi、名片等多种格式。一键生成高清二维码，支持下载 PNG 图片。">
     <meta name="keywords" content="二维码生成器, QR Code, 免费, 在线, WiFi二维码, 名片二维码">
+    <link rel="canonical" href="https://qr-tool-kohl.vercel.app/">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "免费在线二维码生成器",
+        "url": "https://qr-tool-kohl.vercel.app/",
+        "description": "免费在线二维码生成器，支持网址、文本、WiFi、名片等多种格式。一键生成高清二维码，支持下载 PNG 图片。",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript"
+    }
+    </script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔳</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
@@ -252,6 +265,7 @@
         }
         .download-btn.visible { display: inline-flex; }
         .download-btn:hover { background: var(--primary); color: #fff; }
+        #download-svg-btn { margin-top: -8px; }
 
         /* ===== Features ===== */
         .features {
@@ -408,6 +422,13 @@
                     <label>颜色</label>
                     <input type="color" id="qr-color" value="#6c5ce7">
                 </div>
+                <div class="input-group">
+                    <label>Logo</label>
+                    <button type="button" id="logo-btn" class="type-btn" style="font-size:13px">🖼️ +添加</button>
+                    <input type="file" id="logo-input" accept="image/*" hidden>
+                    <span id="logo-name" style="font-size:12px;color:var(--text-secondary)"></span>
+                    <button type="button" id="logo-remove" style="display:none;background:none;border:none;color:red;cursor:pointer;font-size:16px" title="移除 Logo">✕</button>
+                </div>
             </div>
 
             <button class="generate-btn" id="generate-btn">✨ 生成二维码</button>
@@ -423,6 +444,7 @@
                 <canvas id="qr-canvas" style="display:none"></canvas>
             </div>
             <button class="download-btn" id="download-btn">⬇️ 下载 PNG</button>
+            <button class="download-btn" id="download-svg-btn">⬇️ 下载 SVG</button>
         </div>
     </div>
 
@@ -486,12 +508,19 @@
         const colorInput = document.getElementById('qr-color');
         const generateBtn = document.getElementById('generate-btn');
         const downloadBtn = document.getElementById('download-btn');
+        const downloadSvgBtn = document.getElementById('download-svg-btn');
         const canvas = document.getElementById('qr-canvas');
         const placeholder = document.getElementById('qr-placeholder');
         const toast = document.getElementById('toast');
+        const logoInput = document.getElementById('logo-input');
+        const logoBtn = document.getElementById('logo-btn');
+        const logoName = document.getElementById('logo-name');
+        const logoRemove = document.getElementById('logo-remove');
 
         let currentType = 'url';
         let lastDataUrl = '';
+        let logoDataUrl = '';
+        let logoImg = null;
 
         // ===== Type switching =====
         typeBtns.forEach(btn => {
@@ -507,6 +536,31 @@
                     el.style.display = el.dataset.for === currentType ? 'flex' : 'none';
                 });
             });
+        });
+
+        // ===== Logo upload =====
+        logoBtn.addEventListener('click', () => logoInput.click());
+
+        logoInput.addEventListener('change', () => {
+            const file = logoInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                logoDataUrl = e.target.result;
+                logoName.textContent = file.name;
+                logoRemove.style.display = 'inline';
+                showToast('✅ Logo 已添加');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        logoRemove.addEventListener('click', () => {
+            logoDataUrl = '';
+            logoImg = null;
+            logoInput.value = '';
+            logoName.textContent = '';
+            logoRemove.style.display = 'none';
+            showToast('Logo 已移除');
         });
 
         // ===== Generate =====
@@ -559,7 +613,6 @@
 
             // Configure colors
             const darkColor = colorInput.value;
-            // Generate light color with transparency: we'll render on white bg
             const lightColor = '#ffffff';
 
             QRCode.toCanvas(
@@ -572,7 +625,7 @@
                         dark: darkColor,
                         light: lightColor,
                     },
-                    errorCorrectionLevel: ec,
+                    errorCorrectionLevel: logoDataUrl ? 'H' : ec,
                 },
                 function (error) {
                     if (error) {
@@ -581,19 +634,59 @@
                         placeholder.style.display = 'flex';
                         canvas.style.display = 'none';
                         downloadBtn.classList.remove('visible');
+                        downloadSvgBtn.classList.remove('visible');
                         return;
                     }
 
-                    // Scale canvas to display size while keeping resolution
-                    canvas.style.width = '100%';
-                    canvas.style.height = '100%';
-                    canvas.style.display = 'block';
-                    placeholder.style.display = 'none';
-                    lastDataUrl = canvas.toDataURL('image/png');
-                    downloadBtn.classList.add('visible');
-                    showToast('✅ 二维码生成成功！');
+                    // Draw logo overlay if present
+                    if (logoDataUrl) {
+                        drawLogoOnCanvas(canvas, logoDataUrl, function () {
+                            finishGeneration();
+                        });
+                    } else {
+                        finishGeneration();
+                    }
                 }
             );
+
+            function finishGeneration() {
+                // Scale canvas to display size while keeping resolution
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                canvas.style.display = 'block';
+                placeholder.style.display = 'none';
+                lastDataUrl = canvas.toDataURL('image/png');
+                downloadBtn.classList.add('visible');
+                // SVG download only available without logo
+                if (!logoDataUrl) {
+                    downloadSvgBtn.classList.add('visible');
+                } else {
+                    downloadSvgBtn.classList.remove('visible');
+                }
+                showToast('✅ 二维码生成成功！');
+            }
+        }
+
+        function drawLogoOnCanvas(cvs, dataUrl, cb) {
+            const ctx = cvs.getContext('2d');
+            const img = new Image();
+            img.onload = function () {
+                const logoSize = cvs.width * 0.22;
+                const x = (cvs.width - logoSize) / 2;
+                const y = (cvs.height - logoSize) / 2;
+                // White background for logo
+                const pad = logoSize * 0.08;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(x - pad, y - pad, logoSize + pad * 2, logoSize + pad * 2);
+                // Draw logo
+                ctx.drawImage(img, x, y, logoSize, logoSize);
+                cb();
+            };
+            img.onerror = function () {
+                showToast('⚠️ Logo 图片加载失败');
+                cb();
+            };
+            img.src = dataUrl;
         }
 
         generateBtn.addEventListener('click', generateQR);
@@ -608,7 +701,7 @@
             });
         });
 
-        // ===== Download =====
+        // ===== Download PNG =====
         downloadBtn.addEventListener('click', () => {
             if (!lastDataUrl) return;
             const link = document.createElement('a');
@@ -617,7 +710,34 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast('✅ 下载成功！');
+            showToast('✅ PNG 下载成功！');
+        });
+
+        // ===== Download SVG =====
+        downloadSvgBtn.addEventListener('click', () => {
+            const content = getContent();
+            if (!content) return;
+            const size = parseInt(sizeSelect.value, 10);
+            const darkColor = colorInput.value;
+            QRCode.toString(content, {
+                type: 'svg',
+                width: size,
+                margin: 2,
+                color: { dark: darkColor, light: '#ffffff' },
+                errorCorrectionLevel: ecSelect.value
+            }, function (err, svgStr) {
+                if (err) { showToast('❌ SVG 生成失败'); return; }
+                const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `qrcode-${Date.now()}.svg`;
+                link.href = url;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                showToast('✅ SVG 下载成功！');
+            });
         });
 
         // ===== Toast =====
