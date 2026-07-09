@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批量二维码生成器 — 一次生成多个二维码 | 二维码工具</title>
+    <meta name="description" content="免费在线批量二维码生成器，支持一次导入多个链接或文本，批量生成二维码并打包下载为 ZIP。支持 CSV 文件导入。">
+    <meta name="keywords" content="批量二维码, 批量生成, 二维码批量, 批量二维码生成器">
+    <link rel="canonical" href="https://xx-2026-ch.github.io/qr-tool/batch-qr/">
+    <script type="application/ld+json">{
+        "@context":"https://schema.org","@type":"WebApplication",
+        "name":"批量二维码生成器","url":"https://xx-2026-ch.github.io/qr-tool/batch-qr/",
+        "description":"批量生成二维码，支持导入列表并打包下载。","applicationCategory":"UtilityApplication","operatingSystem":"All"
+    }</script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+
+    <!-- Baidu Analytics -->
+    <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?d06276dc0f50abc694652a2c2353586a";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #f0f4f8; --card-bg: #fff; --text: #1a202c; --text-secondary: #4a5568;
+            --border: #e2e8f0; --primary: #6c5ce7; --primary-hover: #5a4bd1;
+            --primary-light: #f0eeff; --success: #10b981; --shadow: 0 4px 24px rgba(0,0,0,.06);
+            --radius: 16px; --radius-sm: 10px;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f172a; --card-bg: #1e293b; --text: #f1f5f9; --text-secondary: #94a3b8;
+                --border: #334155; --primary-light: #1e1b4b; --shadow: 0 4px 24px rgba(0,0,0,.3);
+            }
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body {
+            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans SC',sans-serif;
+            background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;transition:background .3s,color .3s;
+        }
+        header {
+            background:var(--card-bg);border-bottom:1px solid var(--border);padding:16px 24px;
+            display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+        }
+        .logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;text-decoration:none;color:inherit}
+        .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+        .logo span{background:linear-gradient(135deg,#6c5ce7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        header nav{display:flex;gap:8px}
+        header nav a{color:var(--text-secondary);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:14px;transition:background .2s,color .2s}
+        header nav a:hover{background:var(--primary-light);color:var(--primary)}
+        header nav a.active{background:var(--primary);color:#fff}
+
+        .container{max-width:960px;margin:0 auto;padding:40px 20px;flex:1}
+        .hero{text-align:center;margin-bottom:32px}
+        .hero h1{font-size:28px;font-weight:800;margin-bottom:10px}
+        .hero h1 span{background:linear-gradient(135deg,#6c5ce7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .hero p{color:var(--text-secondary);font-size:15px;max-width:520px;margin:0 auto;line-height:1.6}
+
+        .main-card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);padding:32px}
+
+        /* ===== Input ===== */
+        .input-section{display:flex;flex-direction:column;gap:16px}
+        .input-section label{font-size:14px;font-weight:600;color:var(--text-secondary)}
+        .input-section textarea{
+            width:100%;min-height:200px;padding:14px 16px;border:2px solid var(--border);border-radius:var(--radius-sm);
+            font-size:14px;line-height:1.7;background:var(--bg);color:var(--text);outline:none;font-family:inherit;resize:vertical;
+        }
+        .input-section textarea:focus{border-color:var(--primary)}
+
+        .input-hint{font-size:13px;color:var(--text-secondary);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+        .input-hint .file-upload-btn{
+            padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text-secondary);
+            font-size:13px;cursor:pointer;transition:all .2s
+        }
+        .input-hint .file-upload-btn:hover{border-color:var(--primary);color:var(--primary)}
+        .input-hint input[type=file]{display:none}
+
+        .file-badge{display:none;align-items:center;gap:6px;padding:4px 12px;background:var(--primary-light);border-radius:20px;font-size:12px;color:var(--primary)}
+        .file-badge.visible{display:inline-flex}
+        .file-badge .close-file{background:none;border:none;color:var(--primary);cursor:pointer;font-size:14px;padding:0 2px}
+
+        /* ===== Options ===== */
+        .options-row{display:flex;flex-wrap:wrap;gap:16px;align-items:end;margin-top:8px}
+        .option-group{display:flex;flex-direction:column;gap:4px}
+        .option-group label{font-size:13px;color:var(--text-secondary);font-weight:500}
+        .option-group select,.option-group input[type=color]{
+            padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);outline:none
+        }
+        .option-group select:focus{border-color:var(--primary)}
+        .option-group input[type=color]{width:44px;height:36px;padding:2px;cursor:pointer}
+
+        .generate-btn{
+            margin-top:16px;padding:14px 28px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff;
+            border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s
+        }
+        .generate-btn:hover{opacity:.9}
+        .generate-btn:active{transform:scale(.98)}
+        .generate-btn:disabled{opacity:.5;cursor:not-allowed}
+
+        /* ===== Progress ===== */
+        .progress-section{display:none;margin-top:24px}
+        .progress-section.visible{display:block}
+        .progress-bar{width:100%;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+        .progress-fill{height:100%;background:linear-gradient(90deg,#6c5ce7,#a29bfe);border-radius:4px;transition:width .3s;width:0}
+        .progress-text{font-size:13px;color:var(--text-secondary);margin-top:6px;text-align:center}
+
+        /* ===== Gallery ===== */
+        .gallery-section{display:none;margin-top:24px}
+        .gallery-section.visible{display:block}
+        .gallery-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+        .gallery-header h3{font-size:16px;font-weight:600}
+        .zip-btn{
+            padding:10px 24px;background:var(--success);color:#fff;border:none;border-radius:8px;
+            font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:opacity .2s
+        }
+        .zip-btn:hover{opacity:.9}
+
+        .gallery-grid{
+            display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px;max-height:500px;overflow-y:auto;padding:4px 0
+        }
+        .gallery-item{
+            background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;border:1px solid var(--border)
+        }
+        .gallery-item canvas{width:100%;max-width:120px;height:auto;display:block;margin:0 auto}
+        .gallery-item .g-label{font-size:11px;color:var(--text-secondary);margin-top:6px;word-break:break-all;max-height:32px;overflow:hidden}
+        .gallery-item .g-dl{
+            display:inline-block;margin-top:6px;font-size:11px;color:var(--primary);cursor:pointer;text-decoration:none
+        }
+        .gallery-item .g-dl:hover{text-decoration:underline}
+
+        footer{text-align:center;padding:24px;color:var(--text-secondary);font-size:13px;border-top:1px solid var(--border);margin-top:20px;background:var(--card-bg)}
+        footer a{color:var(--primary);text-decoration:none}
+        footer a:hover{text-decoration:underline}
+
+        .toast{
+            position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:var(--bg);
+            padding:12px 24px;border-radius:var(--radius-sm);font-size:14px;opacity:0;transition:all .3s;pointer-events:none;z-index:999
+        }
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../" class="logo"><div class="logo-icon">🔳</div><span>二维码工具</span></a>
+    <nav>
+        <a href="../">生成</a>
+        <a href="../decode/">解码</a>
+        <a href="./" class="active">批量</a>
+        <a href="../#faq">常见问题</a>
+    </nav>
+</header>
+
+<div class="container">
+    <section class="hero">
+        <h1>批量 <span>二维码</span> 生成器</h1>
+        <p>一次导入多个链接或文本，批量生成二维码并打包下载，省时省力</p>
+    </section>
+
+    <div class="main-card">
+        <div class="input-section">
+            <label>导入数据</label>
+            <div class="input-hint">
+                <span>每行一个，支持格式：<code>内容</code> 或 <code>标签,内容</code></span>
+                <span>
+                    <label class="file-upload-btn" id="csv-label">📄 导入 CSV/TXT</label>
+                    <input type="file" id="file-input" accept=".csv,.txt,.text">
+                    <span class="file-badge" id="file-badge"><span id="file-badge-name"></span><button class="close-file" id="close-file">✕</button></span>
+                </span>
+            </div>
+            <textarea id="data-input" placeholder="每行输入一条内容&#10;&#10;示例：&#10;https://example.com&#10;我的网站,https://mysite.com&#10;https://github.com/xx-2026-ch&#10;https://google.com"></textarea>
+
+            <div class="options-row">
+                <div class="option-group">
+                    <label>尺寸</label>
+                    <select id="qr-size">
+                        <option value="256">256px</option>
+                        <option value="512" selected>512px</option>
+                        <option value="1024">1024px</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label>纠错</label>
+                    <select id="qr-ec">
+                        <option value="L">低</option><option value="M" selected>中</option>
+                        <option value="Q">较高</option><option value="H">高</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label>颜色</label>
+                    <input type="color" id="qr-color" value="#6c5ce7">
+                </div>
+                <div class="option-group">
+                    <label>文件名前缀</label>
+                    <input type="text" id="name-prefix" value="qrcode" style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);outline:none;width:120px">
+                </div>
+            </div>
+
+            <button class="generate-btn" id="generate-btn">✨ 批量生成</button>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-section" id="progress-section">
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+            <div class="progress-text" id="progress-text">准备中…</div>
+        </div>
+
+        <!-- Gallery -->
+        <div class="gallery-section" id="gallery-section">
+            <div class="gallery-header">
+                <h3 id="gallery-title">生成的二维码</h3>
+                <a class="zip-btn" id="zip-btn">📦 下载全部 (ZIP)</a>
+            </div>
+            <div class="gallery-grid" id="gallery-grid"></div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>© 2026 <a href="../">二维码工具</a> · <a href="../">生成二维码</a> · <a href="../decode/">解码二维码</a> · <a href="./">批量生成</a> · 免费在线使用</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+    'use strict';
+
+    // ===== DOM refs =====
+    const dataInput = document.getElementById('data-input');
+    const fileInput = document.getElementById('file-input');
+    const csvLabel = document.getElementById('csv-label');
+    const fileBadge = document.getElementById('file-badge');
+    const fileBadgeName = document.getElementById('file-badge-name');
+    const closeFile = document.getElementById('close-file');
+    const sizeSelect = document.getElementById('qr-size');
+    const ecSelect = document.getElementById('qr-ec');
+    const colorInput = document.getElementById('qr-color');
+    const prefixInput = document.getElementById('name-prefix');
+    const generateBtn = document.getElementById('generate-btn');
+    const progressSection = document.getElementById('progress-section');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const gallerySection = document.getElementById('gallery-section');
+    const galleryTitle = document.getElementById('gallery-title');
+    const galleryGrid = document.getElementById('gallery-grid');
+    const zipBtn = document.getElementById('zip-btn');
+    const toast = document.getElementById('toast');
+
+    // ===== File import =====
+    csvLabel.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+        if (!fileInput.files.length) return;
+        const file = fileInput.files[0];
+        fileBadgeName.textContent = file.name;
+        fileBadge.classList.add('visible');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // Detect encoding (try GBK first for Chinese users)
+            const text = e.target.result;
+            if (dataInput.value) {
+                dataInput.value += '\n' + text.trim();
+            } else {
+                dataInput.value = text.trim();
+            }
+            showToast('✅ 已导入 ' + file.name);
+        };
+        reader.readAsText(file, 'UTF-8');
+    });
+    closeFile.addEventListener('click', () => {
+        fileInput.value = '';
+        fileBadge.classList.remove('visible');
+    });
+
+    // ===== Generate =====
+    generateBtn.addEventListener('click', generateAll);
+
+    function parseData(text) {
+        const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l);
+        const items = [];
+        for (const line of lines) {
+            // Try "label,content" format - look for first comma
+            const commaIdx = line.indexOf(',');
+            if (commaIdx > 0 && commaIdx < line.length - 1) {
+                const label = line.substring(0, commaIdx).trim();
+                const content = line.substring(commaIdx + 1).trim();
+                if (content) {
+                    items.push({ label: label, content: content });
+                    continue;
+                }
+            }
+            // Plain content
+            if (line) items.push({ label: '', content: line });
+        }
+        return items;
+    }
+
+    function generateAll() {
+        const text = dataInput.value.trim();
+        if (!text) { showToast('⚠️ 请输入要生成的内容'); return; }
+
+        const items = parseData(text);
+        if (items.length === 0) { showToast('⚠️ 没有有效的内容'); return; }
+        if (items.length > 500) { showToast('⚠️ 一次最多生成 500 个二维码'); return; }
+
+        const size = parseInt(sizeSelect.value);
+        const ec = ecSelect.value;
+        const darkColor = colorInput.value;
+        const prefix = prefixInput.value.trim() || 'qrcode';
+
+        // Reset UI
+        galleryGrid.innerHTML = '';
+        gallerySection.classList.remove('visible');
+        progressSection.classList.add('visible');
+        generateBtn.disabled = true;
+        generateBtn.textContent = '⏳ 生成中…';
+
+        const total = items.length;
+        let completed = 0;
+        const canvases = []; // { label, content, canvas }
+
+        function updateProgress() {
+            const pct = Math.round((completed / total) * 100);
+            progressFill.style.width = pct + '%';
+            progressText.textContent = `正在生成 ${completed}/${total}`;
+        }
+
+        // Process items in batches to avoid browser freezing
+        const BATCH = 5;
+        let idx = 0;
+
+        function processBatch() {
+            const end = Math.min(idx + BATCH, total);
+            for (let i = idx; i < end; i++) {
+                const item = items[i];
+                const canvas = document.createElement('canvas');
+                const cSize = Math.min(size, 1024);
+                canvas.width = cSize;
+                canvas.height = cSize;
+
+                try {
+                    QRCode.toCanvas(canvas, item.content, {
+                        width: cSize, margin: 2,
+                        color: { dark: darkColor, light: '#ffffff' },
+                        errorCorrectionLevel: ec,
+                    }, function(err) {
+                        if (err) console.error('QR error:', err);
+                    });
+                    // QRCode.toCanvas is sync for the library used
+                } catch(e) {
+                    console.error(e);
+                }
+                canvases.push({ label: item.label, content: item.content, canvas: canvas });
+                completed++;
+            }
+            idx = end;
+            updateProgress();
+
+            if (idx < total) {
+                // Delay to let browser breathe
+                setTimeout(processBatch, 50);
+            } else {
+                finishGeneration(canvases, prefix);
+            }
+        }
+
+        processBatch();
+    }
+
+    function finishGeneration(canvases, prefix) {
+        generateBtn.disabled = false;
+        generateBtn.textContent = '✨ 批量生成';
+        progressText.textContent = `✅ 完成！共生成 ${canvases.length} 个二维码`;
+
+        // Show gallery
+        galleryGrid.innerHTML = '';
+        let index = 0;
+        for (const item of canvases) {
+            index++;
+            const label = item.label || `${prefix}-${index}`;
+            const safeLabel = label.replace(/[<>:"\/\\|?*]/g, '_');
+
+            const div = document.createElement('div');
+            div.className = 'gallery-item';
+
+            // Clone canvas for display
+            const displayCanvas = document.createElement('canvas');
+            displayCanvas.width = 120;
+            displayCanvas.height = 120;
+            const ctx = displayCanvas.getContext('2d');
+            ctx.drawImage(item.canvas, 0, 0, 120, 120);
+            div.appendChild(displayCanvas);
+
+            const labelEl = document.createElement('div');
+            labelEl.className = 'g-label';
+            labelEl.textContent = safeLabel;
+            div.appendChild(labelEl);
+
+            const dlLink = document.createElement('a');
+            dlLink.className = 'g-dl';
+            dlLink.textContent = '⬇ 下载';
+            dlLink.href = item.canvas.toDataURL('image/png');
+            dlLink.download = safeLabel + '.png';
+            div.appendChild(dlLink);
+
+            galleryGrid.appendChild(div);
+        }
+
+        galleryTitle.textContent = `生成的二维码（共 ${canvases.length} 个）`;
+        gallerySection.classList.add('visible');
+
+        // ZIP download
+        zipBtn.onclick = function() {
+            const zip = new JSZip();
+            let idx = 0;
+            for (const item of canvases) {
+                idx++;
+                const label = item.label || `${prefix}-${idx}`;
+                const safeLabel = label.replace(/[<>:"\/\\|?*]/g, '_');
+                const dataUrl = item.canvas.toDataURL('image/png');
+                const base64 = dataUrl.split(',')[1];
+                zip.file(safeLabel + '.png', base64, { base64: true });
+            }
+
+            zip.generateAsync({ type: 'blob' }).then(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'qrcodes.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('✅ ZIP 下载成功！共 ' + canvases.length + ' 个二维码');
+            });
+        };
+    }
+
+    // ===== Toast =====
+    function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+})();
+</script>
+</body>
+</html>
