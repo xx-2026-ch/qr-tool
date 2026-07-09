@@ -7,6 +7,15 @@
     <meta name="description" content="免费在线二维码生成器，支持网址、文本、WiFi、名片等多种格式。一键生成高清二维码，支持下载 PNG 图片。">
     <meta name="keywords" content="二维码生成器, QR Code, 免费, 在线, WiFi二维码, 名片二维码">
     <link rel="canonical" href="https://xx-2026-ch.github.io/qr-tool/">
+
+    <!-- Open Graph / Social -->
+    <meta property="og:title" content="免费在线二维码生成器">
+    <meta property="og:description" content="免费在线二维码生成器，支持网址、文本、WiFi、名片等多种格式。一键生成高清二维码，支持下载 PNG 图片。">
+    <meta property="og:url" content="https://xx-2026-ch.github.io/qr-tool/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="免费在线二维码生成器">
+    <meta name="twitter:description" content="免费在线二维码生成器，支持网址、文本、WiFi、名片等多种格式。">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -17,6 +26,38 @@
         "applicationCategory": "UtilityApplication",
         "operatingSystem": "All",
         "browserRequirements": "Requires JavaScript"
+    }
+    </script>
+    <!-- FAQ Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [{
+            "@type": "Question",
+            "name": "二维码生成器是免费的吗？",
+            "acceptedAnswer": { "@type": "Answer", "text": "完全免费，无需注册，不限次数，所有功能都可以免费使用。" }
+        }, {
+            "@type": "Question",
+            "name": "二维码数据会上传到服务器吗？",
+            "acceptedAnswer": { "@type": "Answer", "text": "不会。所有二维码生成都在您的浏览器中本地完成，数据不会上传到任何服务器，完全保护您的隐私安全。" }
+        }, {
+            "@type": "Question",
+            "name": "如何生成 WiFi 二维码？",
+            "acceptedAnswer": { "@type": "Answer", "text": "在生成器中选择「WiFi」类型，输入 WiFi 名称和密码，选择加密方式，点击生成即可。他人扫码即可连接 WiFi，无需手动输入密码。" }
+        }, {
+            "@type": "Question",
+            "name": "二维码可以下载哪些格式？",
+            "acceptedAnswer": { "@type": "Answer", "text": "支持下载 PNG 和 SVG 两种格式。PNG 适合图片使用，SVG 为矢量格式可无限放大不失真。" }
+        }, {
+            "@type": "Question",
+            "name": "可以自定义二维码颜色吗？",
+            "acceptedAnswer": { "@type": "Answer", "text": "可以。您可以使用颜色选择器自由选择二维码的前景色，也可以添加自定义 Logo 到二维码中央。" }
+        }, {
+            "@type": "Question",
+            "name": "二维码有有效期吗？",
+            "acceptedAnswer": { "@type": "Answer", "text": "生成的二维码是静态图片，没有有效期，只要图片不损坏就可以永久使用。" }
+        }]
     }
     </script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔳</text></svg>">
@@ -99,6 +140,8 @@
             gap: 10px;
             font-size: 20px;
             font-weight: 700;
+            text-decoration: none;
+            color: inherit;
         }
         .logo-icon {
             width: 36px; height: 36px;
@@ -338,13 +381,14 @@
 <body>
 
 <header>
-    <div class="logo">
+    <a href="./" class="logo">
         <div class="logo-icon">🔳</div>
         <span>二维码工具</span>
-    </div>
+    </a>
     <nav>
-        <a href="#about">关于</a>
-        <a href="#features">功能</a>
+        <a href="./" class="active">生成</a>
+        <a href="decode/">解码</a>
+        <a href="#faq">常见问题</a>
     </nav>
 </header>
 
@@ -353,6 +397,30 @@
     <section class="hero">
         <h1>免费 <span>二维码</span> 在线生成器</h1>
         <p>支持网址、文本、WiFi、名片等多种格式，一键生成高清二维码，免费下载 PNG 图片</p>
+    </section>
+
+    <!-- ===== Usage Steps ===== -->
+    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px">
+        <div style="background:var(--card-bg);border-radius:var(--radius-sm);padding:20px;text-align:center;box-shadow:var(--shadow)">
+            <div style="font-size:28px;margin-bottom:8px">1️⃣</div>
+            <h3 style="font-size:15px;margin-bottom:4px">选择类型</h3>
+            <p style="font-size:13px;color:var(--text-secondary)">网址、文本、WiFi、名片，任选一种</p>
+        </div>
+        <div style="background:var(--card-bg);border-radius:var(--radius-sm);padding:20px;text-align:center;box-shadow:var(--shadow)">
+            <div style="font-size:28px;margin-bottom:8px">2️⃣</div>
+            <h3 style="font-size:15px;margin-bottom:4px">填写内容</h3>
+            <p style="font-size:13px;color:var(--text-secondary)">输入要生成二维码的信息</p>
+        </div>
+        <div style="background:var(--card-bg);border-radius:var(--radius-sm);padding:20px;text-align:center;box-shadow:var(--shadow)">
+            <div style="font-size:28px;margin-bottom:8px">3️⃣</div>
+            <h3 style="font-size:15px;margin-bottom:4px">自定义样式</h3>
+            <p style="font-size:13px;color:var(--text-secondary)">调整颜色、尺寸，添加 Logo</p>
+        </div>
+        <div style="background:var(--card-bg);border-radius:var(--radius-sm);padding:20px;text-align:center;box-shadow:var(--shadow)">
+            <div style="font-size:28px;margin-bottom:8px">4️⃣</div>
+            <h3 style="font-size:15px;margin-bottom:4px">下载使用</h3>
+            <p style="font-size:13px;color:var(--text-secondary)">下载 PNG 或 SVG，直接使用</p>
+        </div>
     </section>
 
     <div class="main-card">
@@ -492,10 +560,41 @@
         </div>
     </section>
 
+    <!-- ===== FAQ Section ===== -->
+    <section id="faq" style="margin-top:48px;background:var(--card-bg);border-radius:var(--radius);padding:32px;box-shadow:var(--shadow)">
+        <h2 style="font-size:22px;font-weight:700;margin-bottom:24px;text-align:center">常见问题</h2>
+        <div style="display:flex;flex-direction:column;gap:16px">
+            <details style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;cursor:pointer">
+                <summary style="font-weight:600;font-size:15px;color:var(--text)">二维码生成器是免费的吗？</summary>
+                <p style="margin-top:10px;font-size:14px;color:var(--text-secondary);line-height:1.6">完全免费，无需注册，不限次数，所有功能都可以免费使用。</p>
+            </details>
+            <details style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;cursor:pointer">
+                <summary style="font-weight:600;font-size:15px;color:var(--text)">二维码数据会上传到服务器吗？</summary>
+                <p style="margin-top:10px;font-size:14px;color:var(--text-secondary);line-height:1.6">不会。所有二维码生成都在您的浏览器中本地完成，数据不会上传到任何服务器，完全保护您的隐私安全。</p>
+            </details>
+            <details style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;cursor:pointer">
+                <summary style="font-weight:600;font-size:15px;color:var(--text)">如何生成 WiFi 二维码？</summary>
+                <p style="margin-top:10px;font-size:14px;color:var(--text-secondary);line-height:1.6">在生成器中选择「WiFi」类型，输入 WiFi 名称和密码，选择加密方式，点击生成即可。他人扫码即可连接 WiFi，无需手动输入密码。</p>
+            </details>
+            <details style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;cursor:pointer">
+                <summary style="font-weight:600;font-size:15px;color:var(--text)">二维码可以下载哪些格式？</summary>
+                <p style="margin-top:10px;font-size:14px;color:var(--text-secondary);line-height:1.6">支持下载 PNG 和 SVG 两种格式。PNG 适合图片使用，SVG 为矢量格式可无限放大不失真。</p>
+            </details>
+            <details style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;cursor:pointer">
+                <summary style="font-weight:600;font-size:15px;color:var(--text)">可以自定义二维码颜色吗？</summary>
+                <p style="margin-top:10px;font-size:14px;color:var(--text-secondary);line-height:1.6">可以。您可以使用颜色选择器自由选择二维码的前景色，也可以添加自定义 Logo 到二维码中央。</p>
+            </details>
+            <details style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;cursor:pointer">
+                <summary style="font-weight:600;font-size:15px;color:var(--text)">二维码有有效期吗？</summary>
+                <p style="margin-top:10px;font-size:14px;color:var(--text-secondary);line-height:1.6">生成的二维码是静态图片，没有有效期，只要图片不损坏就可以永久使用。</p>
+            </details>
+        </div>
+    </section>
+
 </div>
 
 <footer>
-    <p>© 2026 二维码工具 · 免费在线二维码生成器 · 无需注册 无限使用</p>
+    <p>© 2026 <a href="./" style="color:var(--primary);text-decoration:none">二维码工具</a> · <a href="./" style="color:var(--text-secondary);text-decoration:none">生成二维码</a> · <a href="decode/" style="color:var(--text-secondary);text-decoration:none">解码二维码</a> · 免费在线使用</p>
 </footer>
 
 <div class="toast" id="toast"></div>
