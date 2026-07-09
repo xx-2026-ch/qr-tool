@@ -330,6 +330,31 @@
         .download-btn:hover { background: var(--primary); color: #fff; }
         #download-svg-btn { margin-top: -8px; }
 
+        /* ===== Share ===== */
+        .share-section {
+            display: none;
+            margin-top: 12px;
+            text-align: center;
+        }
+        .share-section.visible { display: block; }
+        .share-section p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .share-btn {
+            padding: 8px 16px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .share-btn:hover { background: var(--primary); color: #fff; }
+
         /* ===== Features ===== */
         .features {
             margin-top: 48px;
@@ -533,6 +558,10 @@
             </div>
             <button class="download-btn" id="download-btn">⬇️ 下载 PNG</button>
             <button class="download-btn" id="download-svg-btn">⬇️ 下载 SVG</button>
+            <div class="share-section" id="share-section">
+                <p>💡 觉得好用？分享给朋友</p>
+                <button class="share-btn" id="share-btn">🔗 复制工具链接</button>
+            </div>
         </div>
     </div>
 
@@ -635,6 +664,8 @@
         const logoBtn = document.getElementById('logo-btn');
         const logoName = document.getElementById('logo-name');
         const logoRemove = document.getElementById('logo-remove');
+        const shareSection = document.getElementById('share-section');
+        const shareBtn = document.getElementById('share-btn');
 
         let currentType = 'url';
         let lastDataUrl = '';
@@ -782,6 +813,7 @@
                 } else {
                     downloadSvgBtn.classList.remove('visible');
                 }
+                shareSection.classList.add('visible');
                 showToast('✅ 二维码生成成功！');
             }
         }
@@ -857,6 +889,22 @@
                 URL.revokeObjectURL(url);
                 showToast('✅ SVG 下载成功！');
             });
+        });
+
+        // ===== Share =====
+        shareBtn.addEventListener('click', () => {
+            const url = window.location.href;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(() => showToast('✅ 链接已复制，快去分享给朋友吧！'));
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = url;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('✅ 链接已复制，快去分享给朋友吧！');
+            }
         });
 
         // ===== Toast =====
